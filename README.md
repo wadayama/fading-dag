@@ -4,10 +4,8 @@
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue.svg)](https://www.python.org/)
 
 Fading-channel mutual-information evaluation and SGD-based optimization
-for linear Gaussian directed acyclic graphs (DAGs). Sister library to
-[`cmi-dag`](https://github.com/wadayama/cmi-dag), itself an extension of
-[`gaussian-dag`](https://github.com/wadayama/gaussian-dag). This library
-adds a **mini-batched Monte Carlo layer** over channel-matrix realizations,
+for linear Gaussian directed acyclic graphs (DAGs). Adds a
+**mini-batched Monte Carlo layer** over channel-matrix realizations,
 turning the deterministic-channel K-recursion into a per-realization
 evaluator that produces
 
@@ -39,6 +37,19 @@ The same projector toolbox (Frobenius ball, total-power) used by
 component is end-to-end differentiable, device-agnostic (CPU / CUDA),
 and built on the parent libraries' vendored numerical primitives — there
 is no runtime dependency on either of them.
+
+## Sister libraries
+
+`fading-dag` is one of four standalone members of the Gaussian-DAG
+family, all sharing the same K-recursion / complex-autograd /
+projected-gradient design and vendoring identical numerical primitives:
+
+| Library | Scope | When to use |
+| --- | --- | --- |
+| [`gaussian-dag`](https://github.com/wadayama/gaussian-dag) | Single-pair MI on deterministic linear Gaussian DAGs (parent). | Single-link MIMO, multi-hop AF relay, diamond, input-covariance shaping. |
+| [`cmi-dag`](https://github.com/wadayama/cmi-dag) | Multi-root + conditional MI on arbitrary disjoint subsets; rate-region facets. | MAC, BC, IC, wiretap, multi-terminal rate regions. |
+| [`bussgang-dag`](https://github.com/wadayama/bussgang-dag) | Nonlinear node elements via Bussgang surrogate MI. | Soft-clipping PAs, low-resolution ADCs, hard-decision relays. |
+| [`fading-dag`](https://github.com/wadayama/fading-dag) | Random channel matrices via mini-batched Monte Carlo; ergodic capacity and outage. | Rayleigh / Ricean / Kronecker-correlated fading. |
 
 > **Funding.** This work was supported by JST, CRONOS, Japan Grant
 > Number **JPMJCS25N5**.
