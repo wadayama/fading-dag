@@ -209,6 +209,7 @@ Three symptoms to recognize:
    gradient meaningfully nonzero.
 
    ```python
+   import math
    F_init = math.sqrt(P) / 2 * torch.randn(d, d, dtype=DTYPE)
    F_init = F_init / torch.linalg.norm(F_init) * (math.sqrt(P) / 2)
    F = F_init.clone().requires_grad_(True)
