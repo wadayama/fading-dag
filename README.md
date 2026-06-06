@@ -417,6 +417,25 @@ and reproducibility notes.
 
 ---
 
+## Tutorials
+
+A five-part beginner walkthrough is available under [`docs/`](docs/README.md):
+
+1. [Installation and your first per-realization MI](docs/tutorial-1-installation-and-first-per-realization-mi.md)
+2. [The `(H_sampler, F)` edge specification and sampler factories](docs/tutorial-2-edge-spec-and-samplers.md)
+3. [Ergodic capacity maximization with `sgd_ascent`](docs/tutorial-3-ergodic-capacity-with-sgd-ascent.md)
+4. [Outage probability and the sigmoid surrogate](docs/tutorial-4-outage-and-sigmoid-surrogate.md)
+5. [Fading MAC and rate functions](docs/tutorial-5-fading-mac-and-rate-functions.md)
+
+Working through the parent libraries' tutorial series first will make
+these substantially easier — `gaussian-dag` introduces the single-root
+K-recursion, log-det MI, projected gradient ascent, and projector
+primitives; `cmi-dag` extends them to multi-root, conditional MI, and
+rate-region constraints. This library combines the two with a
+mini-batched Monte Carlo layer over channel-matrix realizations.
+
+---
+
 ## Caveat: sigmoid saturation when training with `outage_probability_smooth`
 
 The smooth surrogate
