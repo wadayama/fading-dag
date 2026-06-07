@@ -580,25 +580,19 @@ sampler factories, and the rest of the pipeline follows. The
 
 ## Citation
 
-If you use this library in academic work, please cite the parent
-library's accompanying paper:
+If you use this library in academic work, please cite the repository:
 
 ```bibtex
-@article{wadayama2026gaussiandag,
-  title  = {Mutual Information Optimization via K-Recursion and
-            Automatic Differentiation for Linear Gaussian Wireless Networks},
-  author = {Wadayama, Tadashi and Na, Siqi},
-  year   = {2026},
-  eprint = {TBD},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.IT},
+@software{wadayama_fading_dag,
+  author  = {Wadayama, Tadashi},
+  title   = {{fading-dag}: mini-batched {M}onte {C}arlo mutual
+             information over random channel matrices on linear
+             {G}aussian {DAG}s},
+  year    = {2026},
+  version = {0.1.0},
+  url     = {https://github.com/wadayama/fading-dag},
 }
 ```
-
-(The arXiv identifier will be filled in once the preprint is posted.)
-A companion paper covering the fading-channel / mini-batched Monte
-Carlo extensions implemented here is in preparation; this README will
-be updated with the citation once the preprint is posted.
 
 ### Acknowledgement
 
