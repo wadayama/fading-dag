@@ -72,7 +72,7 @@ def logdet_hpd(A: torch.Tensor, jitter: float = 0.0) -> torch.Tensor:
         first = tuple(bad[0].tolist()) if bad.numel() > 0 else ()
         raise ValueError(
             "logdet_hpd: input matrix is not Hermitian positive definite at "
-            f"batch index {first} (info={int(info.flatten()[0].item())}). "
+            f"batch index {first} (info={int(info[first].item())}). "
             "Common remedies: (1) ensure the terminal noise covariance is "
             "strictly positive definite (the regularity assumption); "
             "(2) pass jitter>0 to logdet_hpd / "

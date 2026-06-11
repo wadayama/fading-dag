@@ -87,7 +87,7 @@ Confirm the install:
 uv run pytest
 ```
 
-You should see all 68 tests pass in about a second.
+You should see all 73 tests pass in a few seconds.
 
 To run the figure-reproduction examples, install the optional
 `matplotlib` dependency:
@@ -107,7 +107,7 @@ uv sync --extra dev
 ```
 fading-dag/
 ├── fading_dag/      core library (8 modules)
-├── tests/           pytest suite (68 tests, 7 files)
+├── tests/           pytest suite (73 tests, 7 files)
 ├── examples/        2 runnable scripts (paper-style figure reproduction)
 ├── docs/figures/    curated reference output figures (PNG)
 ├── pyproject.toml   project metadata and dependencies (uv / pip)
@@ -353,7 +353,12 @@ importable from `fading_dag` or its submodules.
   resulting batch of channel matrices is reused for both the cross- and
   self-block updates, guaranteeing realization-consistent K-blocks. The
   closure used by `sgd_ascent` / `sgd_descent` re-samples by calling
-  `compute_k_blocks_multiroot` again on the next iteration.
+  `compute_k_blocks_multiroot` again on the next iteration. Note that
+  the call-once guarantee is per **edge**: attaching the *same* sampler
+  object to two edges calls it once for each, producing **independent**
+  realizations. To model one physical channel appearing on multiple
+  edges, write a custom sampler that draws once per forward pass and
+  returns the cached batch on the subsequent call.
 - **Noise covariance.** `noise_covs[j] = Σ_j` is a single
   `(d_j, d_j)` tensor (no batch dimension); it broadcasts implicitly
   across the batch axis. Shadowing or per-realization noise-variance
@@ -494,7 +499,7 @@ optimum `1 - exp(-(e^R - 1) / P)` within Monte Carlo tolerance.
 ## Tests
 
 ```bash
-uv run pytest tests/                                          # 68 tests
+uv run pytest tests/                                          # 73 tests
 uv run pytest tests/test_theoretical_validation.py -v         # closed-form checks
 ```
 
@@ -516,7 +521,9 @@ The suite splits into:
   the trained outage matches the closed-form SISO Rayleigh optimum
   within Monte Carlo tolerance.
 
-All 68 tests run in ~1 second on CPU.
+All 73 tests run in a few seconds on CPU; the closed-form Monte Carlo
+validation tests (B = 50k–100k samples, 500-iteration SGD) dominate the
+runtime.
 
 ---
 

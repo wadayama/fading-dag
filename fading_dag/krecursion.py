@@ -87,6 +87,7 @@ def _realize_edges(
 
     Raises:
         ValueError: if any edge spec is not a 2-tuple of (callable, Tensor),
+            if F is not complex or its dtype differs from the sampler output,
             if the sampler output shape is inconsistent with F, or if
             batch_size <= 0.
     """
@@ -111,12 +112,24 @@ def _realize_edges(
                 f"{type(F).__name__}, shape "
                 f"{tuple(F.shape) if isinstance(F, torch.Tensor) else 'n/a'}"
             )
+        if not F.is_complex():
+            raise ValueError(
+                f"edge_mats[({j}, {i})][1] must be a complex tensor (the "
+                f"log-det MI convention assumes circularly-symmetric complex "
+                f"Gaussians); got dtype {F.dtype}"
+            )
         H = H_sampler(batch_size)
         if not isinstance(H, torch.Tensor) or H.dim() != 3:
             raise ValueError(
                 f"H_sampler at edge ({j}, {i}) must return a 3-D Tensor "
                 f"(B, d_j, d_mid); got shape "
                 f"{tuple(H.shape) if isinstance(H, torch.Tensor) else 'n/a'}"
+            )
+        if H.dtype != F.dtype:
+            raise ValueError(
+                f"H_sampler at edge ({j}, {i}) returns dtype {H.dtype}, but F "
+                f"has dtype {F.dtype}; the sampler and the controllable "
+                f"factor must share one complex dtype"
             )
         if H.shape[0] != batch_size:
             raise ValueError(
@@ -183,7 +196,9 @@ def compute_k_blocks_multiroot(
     Raises:
         ValueError: on the same conditions as `cmi_dag.compute_k_blocks_multiroot`
             (root prefix, parent ordering, missing noise / root covariances),
-            plus malformed edge specs and inconsistent sampler outputs.
+            plus malformed edge specs, inconsistent sampler outputs, edges
+            listed in ``parents`` but missing from ``edge_mats``, and
+            effective-matrix shapes inconsistent with the node dimensions.
     """
     roots = sorted(roots)
     num_roots = len(roots)
@@ -230,8 +245,24 @@ def compute_k_blocks_multiroot(
                     f"Parent {i} of node {j} violates topological order "
                     f"(0 <= i < j)."
                 )
+            if (j, i) not in A_eff:
+                raise ValueError(
+                    f"edge_mats is missing the entry for edge ({j}, {i}) "
+                    f"listed in parents[{j}]."
+                )
         if j not in noise_covs:
             raise ValueError(f"noise_covs is missing the entry for non-root node {j}.")
+        d_j = noise_covs[j].shape[-1]
+        for i in parents[j]:
+            d_i = K[(i, i)].shape[-1]
+            A_shape = A_eff[(j, i)].shape
+            if A_shape[-2] != d_j or A_shape[-1] != d_i:
+                raise ValueError(
+                    f"edge ({j}, {i}): effective matrix H @ F has shape "
+                    f"({A_shape[-2]}, {A_shape[-1]}) per realization, "
+                    f"expected ({d_j}, {d_i}) from noise_covs[{j}] and the "
+                    f"dimension of node {i}."
+                )
 
         # (1) Cross blocks K_{jk} for k = 0, ..., j-1. Batched: (B, d_j, d_k).
         for k in range(j):

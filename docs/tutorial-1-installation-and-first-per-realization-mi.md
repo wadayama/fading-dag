@@ -43,7 +43,7 @@ Confirm the install:
 uv run pytest
 ```
 
-You should see all 68 tests pass in about a second on CPU.
+You should see all 73 tests pass in a few seconds on CPU.
 
 The example scripts also need `matplotlib`, and the
 theoretical-validation tests need `scipy`. Both are optional extras:

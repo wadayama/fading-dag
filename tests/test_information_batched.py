@@ -57,6 +57,19 @@ def test_logdet_hpd_raises_on_non_pd() -> None:
         logdet_hpd(A)
 
 
+def test_logdet_hpd_diagnostic_reports_failing_batch_entry() -> None:
+    """The PD-failure message must report the info code of the *failing*
+    batch entry, not the info value at batch index 0."""
+    A = torch.stack(
+        [
+            torch.eye(2, dtype=torch.complex128),      # PD (info = 0)
+            torch.ones(2, 2, dtype=torch.complex128),  # singular (info = 2)
+        ]
+    )
+    with pytest.raises(ValueError, match=r"batch index \(1,\) \(info=2\)"):
+        logdet_hpd(A)
+
+
 def test_logdet_hpd_jitter_rescues_psd() -> None:
     A = torch.tensor(
         [[1.0 + 0j, 1.0 + 0j], [1.0 + 0j, 1.0 + 0j]], dtype=torch.complex128

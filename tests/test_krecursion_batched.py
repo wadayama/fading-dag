@@ -219,8 +219,8 @@ def test_b1_constant_matches_unbatched_recursion() -> None:
     K_ref[(0, 0)] = 0.5 * (Sigma_0 + Sigma_0.conj().T)
     K_ref[(1, 1)] = 0.5 * (Sigma_1 + Sigma_1.conj().T)
     K_ref[(1, 0)] = torch.zeros(d, d, dtype=torch.complex128)
-    K_ref[(2, 0)] = A_20 @ K_ref[(0, 0)] + A_21 @ K_ref[(1, 0)].mH
-    K_ref[(2, 1)] = A_20 @ K_ref[(1, 0)] + A_21 @ K_ref[(1, 1)]
+    K_ref[(2, 0)] = A_20 @ K_ref[(0, 0)] + A_21 @ K_ref[(1, 0)]
+    K_ref[(2, 1)] = A_20 @ K_ref[(1, 0)].mH + A_21 @ K_ref[(1, 1)]
     self_acc = (
         Sigma_z
         + A_20 @ K_ref[(0, 0)] @ A_20.mH
@@ -307,6 +307,86 @@ def test_missing_noise_cov_raises() -> None:
     root_covs = {0: torch.eye(d, dtype=torch.complex128)}
     noise_covs: dict[int, torch.Tensor] = {}
     with pytest.raises(ValueError, match="noise_covs is missing"):
+        compute_k_blocks_multiroot(
+            num_nodes=2,
+            roots=[0],
+            parents={1: [0]},
+            edge_mats=edge_mats,
+            root_covs=root_covs,
+            noise_covs=noise_covs,
+            batch_size=4,
+        )
+
+
+def test_missing_edge_for_listed_parent_raises() -> None:
+    d = 2
+    root_covs = {0: torch.eye(d, dtype=torch.complex128)}
+    noise_covs = {1: torch.eye(d, dtype=torch.complex128)}
+    with pytest.raises(ValueError, match=r"missing the entry for edge \(1, 0\)"):
+        compute_k_blocks_multiroot(
+            num_nodes=2,
+            roots=[0],
+            parents={1: [0]},
+            edge_mats={},  # parents lists (1, 0) but no edge spec
+            root_covs=root_covs,
+            noise_covs=noise_covs,
+            batch_size=4,
+        )
+
+
+def test_real_dtype_F_raises() -> None:
+    d = 2
+    edge_mats = {
+        (1, 0): (samplers.rayleigh((d, d)), torch.eye(d)),  # real-valued F
+    }
+    root_covs = {0: torch.eye(d, dtype=torch.complex128)}
+    noise_covs = {1: torch.eye(d, dtype=torch.complex128)}
+    with pytest.raises(ValueError, match="complex"):
+        compute_k_blocks_multiroot(
+            num_nodes=2,
+            roots=[0],
+            parents={1: [0]},
+            edge_mats=edge_mats,
+            root_covs=root_covs,
+            noise_covs=noise_covs,
+            batch_size=4,
+        )
+
+
+def test_H_F_dtype_mismatch_raises() -> None:
+    d = 2
+    edge_mats = {
+        (1, 0): (
+            samplers.rayleigh((d, d), dtype=torch.complex64),
+            torch.eye(d, dtype=torch.complex128),
+        ),
+    }
+    root_covs = {0: torch.eye(d, dtype=torch.complex128)}
+    noise_covs = {1: torch.eye(d, dtype=torch.complex128)}
+    with pytest.raises(ValueError, match="dtype"):
+        compute_k_blocks_multiroot(
+            num_nodes=2,
+            roots=[0],
+            parents={1: [0]},
+            edge_mats=edge_mats,
+            root_covs=root_covs,
+            noise_covs=noise_covs,
+            batch_size=4,
+        )
+
+
+def test_edge_dimension_mismatch_raises() -> None:
+    """F maps node 0 (dimension 2) through a (3, 5)-shaped factor: the
+    effective matrix has 5 columns, inconsistent with d_0 = 2."""
+    edge_mats = {
+        (1, 0): (
+            samplers.rayleigh((2, 3)),
+            torch.randn(3, 5, dtype=torch.complex128),
+        ),
+    }
+    root_covs = {0: torch.eye(2, dtype=torch.complex128)}
+    noise_covs = {1: torch.eye(2, dtype=torch.complex128)}
+    with pytest.raises(ValueError, match="effective matrix"):
         compute_k_blocks_multiroot(
             num_nodes=2,
             roots=[0],
