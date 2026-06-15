@@ -166,6 +166,38 @@ For the SISO scalar case (`d = 1`) `I_samples.mean()` agrees with
 Telatar's `exp(1/γ) · E_1(1/γ)` to within Monte Carlo tolerance — see
 `tests/test_theoretical_validation.py`.
 
+#### Alternatively: build the DAG with named nodes
+
+The same DAG can be declared with the named-node `GaussianDAG` builder, a thin
+convenience layer that *lowers* to the functional core above (no numerics
+change). Each edge is still an `(H_sampler, F)` 2-tuple; every query takes a
+`batch_size` and re-samples a fresh mini-batch:
+
+```python
+import torch
+from fading_dag import GaussianDAG, samplers
+
+torch.manual_seed(0)
+d, sigma2 = 2, 0.5
+F = torch.eye(d, dtype=torch.complex128)
+
+dag = GaussianDAG()
+dag.add_source("X", cov=torch.eye(d, dtype=torch.complex128))
+dag.add_node("Y", parents={"X": (samplers.rayleigh((d, d)), F)},
+             noise=sigma2 * torch.eye(d, dtype=torch.complex128))
+
+I  = dag.cmi(A=["X"], B=["Y"], batch_size=1000)              # per-realization (B,)
+Ce = dag.ergodic_capacity(A=["X"], B=["Y"], batch_size=1000) # mini-batch mean
+print(f"ergodic capacity (B=1000 estimate): {Ce.item():.4f} nats")
+```
+
+The builder is a pure, backward-compatible addition; the index-based functional
+API stays exactly as it is. Multiple `add_source` calls give a fading MAC; a
+trainable `F` flows gradients through `ergodic_capacity(...)` for `sgd_ascent`.
+Covariances/edges may be given as concrete objects (above) or by name and
+resolved at query time via `cmi(..., bind={...})`. See `fading_dag/builder.py`
+and `docs/builder-notes.md` for the full surface.
+
 ### 2. Maximize the ergodic capacity (`sgd_ascent`)
 
 Promote `F` to a trainable precoder, projected onto a Frobenius-power
@@ -277,6 +309,7 @@ All symbols below are re-exported from the top-level package:
 
 ```python
 from fading_dag import (
+    GaussianDAG,
     compute_k_blocks_multiroot,
     conditional_mutual_information_from_k,
     ergodic_capacity,
@@ -292,6 +325,7 @@ from fading_dag import (
 
 | Symbol | Module | Purpose |
 | --- | --- | --- |
+| `GaussianDAG()` | `builder` | Named-node declarative builder: `add_source(name, cov=…)`, `add_node(name, parents={name: (H_sampler, F)}, noise=…)`, then `cmi(A, B, C=(), *, batch_size)` → per-realization `(B,)`, `ergodic_capacity(...)` → mini-batch mean, `cov(node, *, batch_size)`. Lowers to `compute_k_blocks_multiroot` + `conditional_mutual_information_from_k`; a pure additive convenience over the functional API (conditional / multiroot / stochastic-batch profiles). |
 | `compute_k_blocks_multiroot(num_nodes, roots, parents, edge_mats, root_covs, noise_covs, *, batch_size, symmetrize_self_blocks=True)` | `krecursion` | **Batched** forward pass of the multi-root K-recursion for a DAG whose edges are `(H_sampler, F)` 2-tuples. Each sampler is called *exactly once* with `batch_size`; the returned dict has uniform 3-D blocks `(B, d_j, d_k)`. Root-root blocks are stored unbatched and `expand`-promoted to 3-D for memory efficiency. Differentiable through every `F`. |
 | `conditional_mutual_information_from_k(K, A, B, C=(), *, jitter=0.0)` | `information` | `I(V_A; V_B \| V_C)` evaluated **per channel realization**: returns a real tensor of shape `(B,)` (nats). Aggregation (mean, outage, etc.) is the caller's responsibility. Differentiable through `K`. |
 | `Summand` | `rate_region` | `tuple[float, Sequence[int], Sequence[int], Sequence[int]]` representing one term `α · I(V_A; V_B \| V_C)` of a rate function. |

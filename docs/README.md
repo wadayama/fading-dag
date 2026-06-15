@@ -17,6 +17,11 @@ The scripts under [`../examples/`](../examples/) accompany Tutorials 3–4
 as the polished end-to-end versions with figure output; reading them
 is optional.
 
+See also [`builder-notes.md`](builder-notes.md) for the named-node
+`GaussianDAG` builder — a pure additive convenience over the functional API
+(implementation notes and supported profiles: conditional / multiroot /
+stochastic-batch).
+
 These tutorials are self-contained — `fading-dag` has no
 `gaussian-dag` or `cmi-dag` runtime dependency. That said, the
 deterministic-channel background (single-root K-recursion, conditional

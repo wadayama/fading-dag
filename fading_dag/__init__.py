@@ -17,6 +17,7 @@ from `cmi-dag` so there is no `cmi-dag` runtime dependency.
 """
 
 from fading_dag import samplers  # submodule re-export
+from fading_dag.builder import GaussianDAG
 from fading_dag.information import (
     conditional_mutual_information_from_k,
     logdet_hpd,
@@ -36,6 +37,7 @@ from fading_dag.projections import project_frobenius_ball, project_total_power
 from fading_dag.rate_region import Summand, evaluate_rate_functions
 
 __all__ = [
+    "GaussianDAG",
     "Summand",
     "compute_k_blocks_multiroot",
     "conditional_mutual_information_from_k",

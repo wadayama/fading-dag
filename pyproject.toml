@@ -1,6 +1,6 @@
 [project]
 name = "fading-dag"
-version = "0.1.0"
+version = "0.2.0"
 description = "Fading-channel mutual information and SGD optimization for linear Gaussian DAGs, extending cmi-dag with mini-batched Monte Carlo over channel-matrix realizations."
 readme = "README.md"
 requires-python = ">=3.12"
