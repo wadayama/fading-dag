@@ -48,7 +48,6 @@ projected-gradient design and vendoring identical numerical primitives:
 | --- | --- | --- |
 | [`gaussian-dag`](https://github.com/wadayama/gaussian-dag) | Single-pair MI on deterministic linear Gaussian DAGs (parent). | Single-link MIMO, multi-hop AF relay, diamond, input-covariance shaping. |
 | [`cmi-dag`](https://github.com/wadayama/cmi-dag) | Multi-root + conditional MI on arbitrary disjoint subsets; rate-region facets. | MAC, BC, IC, wiretap, multi-terminal rate regions. |
-| [`bussgang-dag`](https://github.com/wadayama/bussgang-dag) | Nonlinear node elements via Bussgang surrogate MI. | Soft-clipping PAs, low-resolution ADCs, hard-decision relays. |
 | [`fading-dag`](https://github.com/wadayama/fading-dag) | Random channel matrices via mini-batched Monte Carlo; ergodic capacity and outage. | Rayleigh / Ricean / Kronecker-correlated fading. |
 
 > **Funding.** This work was supported by JST, CRONOS, Japan Grant
@@ -587,8 +586,7 @@ sampler factories, and the rest of the pipeline follows. The
 
 - **Scope.** Linear Gaussian DAGs with **random channel matrices** only.
   Nonlinear node elements (saturating amplifiers, quantisers,
-  hard-decision relays) are not directly supported; see the sister
-  library `bussgang-dag` for Bussgang-surrogate handling.
+  hard-decision relays) are not directly supported.
 - **Per-realization fading model.** Each forward pass draws
   *independent* realizations within a mini-batch. Block fading (a
   shared realization across a sub-batch) and time-correlated fading
